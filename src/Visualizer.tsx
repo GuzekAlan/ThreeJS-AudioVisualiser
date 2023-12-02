@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useLoader} from "@react-three/fiber";
-import { MutableRefObject, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { DataTexture, Mesh, PlaneGeometry, ShaderMaterial, TextureLoader} from "three";
+import { MutableRefObject, Suspense, useEffect, useMemo, useRef} from "react";
+import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader} from "three";
 
 const fragmentShader = `
 in vec2 uvInterpolator;
