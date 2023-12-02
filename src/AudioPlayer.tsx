@@ -41,6 +41,9 @@ const AudioPlayer = ({ audioRef, analyserRef }: AudioPlayerProps) => {
     if(!audioContext) {
       const context = new AudioContext();
       analyserRef.current = context.createAnalyser();
+      analyserRef.current.minDecibels = -90;
+      analyserRef.current.maxDecibels = -10;
+      analyserRef.current.fftSize = 256;
       const source = context.createMediaElementSource(audioRef.current!)
       source.connect(analyserRef.current);
       analyserRef.current.connect(context.destination);
