@@ -1,10 +1,12 @@
-import { useState } from "react";
-import AudioPlayer from "./AudioPlayer";
+import { useRef } from "react";
 import { Stack } from "@mui/material";
+import AudioPlayer from "./AudioPlayer";
+import Visualizer from "./Visualizer";
 
 const App = () => {
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+
   return (
     <>
       <Stack
@@ -13,12 +15,8 @@ const App = () => {
         alignItems="center"
         spacing={2}
       >
-        <AudioPlayer
-          audioFile={audioFile}
-          setAudioFile={setAudioFile}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-        />
+        <Visualizer audioRef={audioRef} analyserRef={analyserRef} />
+        <AudioPlayer audioRef={audioRef} analyserRef={analyserRef} />
       </Stack>
     </>
   );

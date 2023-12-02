@@ -2,23 +2,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { Button, Stack } from "@mui/material";
 
 interface AudioPlayerProps {
-  audioFile: File | null;
-  setAudioFile: (file: File | null) => void;
-  isPlaying: boolean;
-  setIsPlaying: (isPlaying: boolean) => void;
+  audioRef?: React.MutableRefObject<HTMLAudioElement | null>;
+  analyserRef?: React.MutableRefObject<AnalyserNode | null>;
 }
 
-const AudioPlayer = ({
-  audioFile,
-  setAudioFile,
-  isPlaying,
-  setIsPlaying,
-}: AudioPlayerProps) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+const AudioPlayer = ({ audioRef, analyserRef }: AudioPlayerProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [audioSourceUrl, setAudioSourceUrl] = useState<string>("");
-
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       onStop();
@@ -30,6 +25,7 @@ const AudioPlayer = ({
     if (audioRef.current) {
       audioRef.current.play();
       setIsPlaying(true);
+      startAnalyser();
     }
   };
 
@@ -38,6 +34,17 @@ const AudioPlayer = ({
       audioRef.current.pause();
       audioRef.current.currentTime = 0; // reset audio playback to start
       setIsPlaying(false);
+    }
+  };
+
+  const startAnalyser = () => {
+    if(!audioContext) {
+      const context = new AudioContext();
+      analyserRef.current = context.createAnalyser();
+      const source = context.createMediaElementSource(audioRef.current!)
+      source.connect(analyserRef.current);
+      analyserRef.current.connect(context.destination);
+      setAudioContext(context);
     }
   };
 
@@ -66,7 +73,11 @@ const AudioPlayer = ({
       />
       <audio ref={audioRef} src={audioSourceUrl} />
       <Stack direction="row" spacing="4rem">
-        <Button variant="contained" color="secondary" onClick={() => inputRef.current?.click()}>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => inputRef.current?.click()}
+        >
           Upload MP3
         </Button>
         <Button
