@@ -2,12 +2,19 @@ import React, { useEffect, useRef, useState } from "react";
 import { Button, Stack } from "@mui/material";
 
 interface AudioPlayerProps {
-  audioRef?: React.MutableRefObject<HTMLAudioElement | null>;
   analyserRef?: React.MutableRefObject<AnalyserNode | null>;
+  setPicture?: React.Dispatch<React.SetStateAction<File | null>>;
 }
 
-const AudioPlayer = ({ audioRef, analyserRef }: AudioPlayerProps) => {
+declare global {
+  interface Window {
+    jsmediatags: any;
+  }
+}
+
+const AudioPlayer = ({ setPicture, analyserRef }: AudioPlayerProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -55,6 +62,18 @@ const AudioPlayer = ({ audioRef, analyserRef }: AudioPlayerProps) => {
     if (audioFile) {
       const url = URL.createObjectURL(audioFile);
       setAudioSourceUrl(url);
+      new window.jsmediatags.Reader(audioFile)
+      .setTagsToRead(["picture"])
+      .read({
+        onSuccess: function (tag: { tags: { picture: File; }}) {
+          console.log(tag.tags.picture);
+          setPicture(tag.tags.picture);
+        },
+        onError: function (error: any) {
+          setPicture(null);
+          console.log(error);
+        },
+      })
     } else {
       setAudioSourceUrl("");
     }

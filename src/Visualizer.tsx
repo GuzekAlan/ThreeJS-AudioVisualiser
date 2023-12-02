@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useLoader} from "@react-three/fiber";
-import { MutableRefObject, Suspense, useMemo, useRef } from "react";
-import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader} from "three";
+import { MutableRefObject, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { DataTexture, Mesh, PlaneGeometry, ShaderMaterial, TextureLoader} from "three";
 
 const fragmentShader = `
 in vec2 uvInterpolator;
@@ -29,14 +29,33 @@ const vertexShader = `
 `
 
 interface ImgProps {
-  audioRef?: React.MutableRefObject<HTMLAudioElement | null>;
   analyserRef?: React.MutableRefObject<AnalyserNode | null>;
+  picture?: any;
 }
 
-const Img = ({analyserRef}: ImgProps) => {
+function bytesToBase64(byteArray) {
+  return btoa(
+    byteArray.reduce((data, byte) => data + String.fromCharCode(byte), "")
+  );
+}
+
+const Img = ({picture, analyserRef}: ImgProps) => {
   const mesh: MutableRefObject<Mesh<PlaneGeometry, ShaderMaterial>> = useRef(
     null!
   );
+
+  const defaultTexture = useLoader(TextureLoader, "music.png");
+
+  useEffect(() => {
+    if (picture) {
+      const base64flag = `data:${picture.format};base64,`;
+      const imageString = base64flag + bytesToBase64(picture.data);
+      const tex = new TextureLoader().load(imageString);
+      mesh.current.material.uniforms.u_texture.value = tex;
+    } else {
+      mesh.current.material.uniforms.u_texture.value = defaultTexture;
+    }
+  }, [picture]);
 
   useFrame(() => {
     if(analyserRef.current) {
@@ -62,18 +81,15 @@ const Img = ({analyserRef}: ImgProps) => {
     }
   });
 
-  const texture = useLoader(TextureLoader, 'beliver.png');
   const uniforms = useMemo(
     () => ({
-      u_texture: { type: "t", value: texture},
+      u_texture: { type: "t", value: defaultTexture},
       u_freq0: { value: 0},
       u_freq1: { value: 0},
       u_freq2: { value: 0},
       u_freq3: { value: 0},
       u_freq4: { value: 0},
-    }),
-    [texture]
-  );
+    }), [defaultTexture]);
 
   return (
     <mesh ref={mesh} position={[0, 0, 0]} scale={5}>
@@ -89,17 +105,17 @@ const Img = ({analyserRef}: ImgProps) => {
 }
 
 interface VisualizerProps {
-  audioRef?: React.MutableRefObject<HTMLAudioElement | null>;
   analyserRef?: React.MutableRefObject<AnalyserNode | null>;
+  picture?: File | null;
 }
 
-const Visualizer = ({audioRef, analyserRef}: VisualizerProps ) => {
+const Visualizer = ({picture, analyserRef}: VisualizerProps ) => {
  
   return (
     <>
       <Canvas style={{ height: "80vh", aspectRatio: "1/1" }}>
         <Suspense fallback={null}>
-          <Img audioRef={audioRef} analyserRef={analyserRef}/>
+          <Img picture={picture} analyserRef={analyserRef}/>
         </Suspense>
       </Canvas>
     </>
