@@ -3812,12 +3812,45 @@ uniform float u_freq2;
 uniform float u_freq3;
 uniform float u_freq4;
 
+float PI = 3.1415926535897932384626433832795;
+float pow2(float x) { return x*x; }
+
 void main() {
   vec2 uv = uvInterpolator;
+
+  float intensity = 0.001;
+  float r = sqrt(pow2(uv.x - 0.5) + pow2(uv.y - 0.5));
+  float angle = atan(uv.y - 0.5, uv.x - 0.5);
+  float dx = cos(angle) * r;
+  float dy = sin(angle) * r;
   
-  uv.y = uv.y + cos(uv.x * 10.0 + u_freq0*0.02) * 0.001 * u_freq1;
-  uv.x = uv.x + sin(uv.y * 10.0 + u_freq2*0.02) * 0.001 * u_freq3;
-  gl_FragColor = texture2D(u_texture, uv);
+  if(r > 0. && r < 0.2) {
+      uv.x -= dx*u_freq0 * intensity;
+      uv.y -= dy*u_freq0 * intensity;
+  }
+  if(r > 0.2 && r < 0.4) {
+      uv.x -= dx*u_freq1 * intensity;
+      uv.y -= dy*u_freq1 * intensity;
+  }
+  if(r > 0.4 && r < 0.6) {
+      uv.x -= dx*u_freq2 * intensity;
+      uv.y -= dy*u_freq2 * intensity;
+  }
+  if(r > 0.6 && r < 0.8) {
+      uv.x -= dx*u_freq3 * intensity;
+      uv.y -= dy*u_freq3 * intensity;
+  }
+  if(r > 0.8 && r < 1.0) {
+      uv.x -= dx*u_freq4 * intensity;
+      uv.y -= dy*u_freq4 * intensity;
+  }
+  
+
+  float freq = u_freq2;
+  uv.y -= sin(uv.x*10. + float(int(freq)%5)) * intensity * 0.1 * freq;
+  uv.x -= sin(uv.y*10. + float(int(freq)%5)) * intensity * 0.1 * freq;
+  vec4 col = texture(u_texture, uv);
+  gl_FragColor = col;
 }
 `,h6=`
   out vec2 uvInterpolator;
@@ -3826,4 +3859,4 @@ void main() {
     uvInterpolator = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
-`;function p6(n){return btoa(n.reduce((e,t)=>e+String.fromCharCode(t),""))}const m6=({picture:n,analyserRef:e})=>{const t=ae.useRef(null),i=cS(tx,"music.png");ae.useEffect(()=>{if(n){const o=`data:${n.format};base64,`+p6(n.data),a=new tx().load(o);t.current.material.uniforms.u_texture.value=a}else t.current.material.uniforms.u_texture.value=i},[n]),GG(()=>{if(e.current){const s=new Uint8Array(e.current.frequencyBinCount);e.current.getByteFrequencyData(s);const a=s.reduce((c,f,d)=>(d%5==0?c.push([f]):c[c.length-1].push(f),c),[]).map(c=>c.reduce((f,d)=>f+d,0)/c.length);t.current.material.uniforms.u_freq0.value=a[0],t.current.material.uniforms.u_freq1.value=a[1],t.current.material.uniforms.u_freq2.value=a[2],t.current.material.uniforms.u_freq3.value=a[3],t.current.material.uniforms.u_freq4.value=a[4]}});const r=ae.useMemo(()=>({u_texture:{type:"t",value:i},u_freq0:{value:0},u_freq1:{value:0},u_freq2:{value:0},u_freq3:{value:0},u_freq4:{value:0}}),[i]);return Ct.jsxs("mesh",{ref:t,position:[0,0,0],scale:5,children:[Ct.jsx("planeGeometry",{args:[1,1]}),Ct.jsx("shaderMaterial",{fragmentShader:d6,vertexShader:h6,uniforms:r})]})},g6=({picture:n,analyserRef:e})=>Ct.jsx(Ct.Fragment,{children:Ct.jsx(f6,{style:{height:"80vh",aspectRatio:"1/1"},children:Ct.jsx(ae.Suspense,{fallback:null,children:Ct.jsx(m6,{picture:n,analyserRef:e})})})}),v6=()=>{const n=ae.useRef(null),[e,t]=ae.useState(null);return Ct.jsx(Ct.Fragment,{children:Ct.jsxs(a2,{direction:"column",justifyContent:"center",alignItems:"center",spacing:2,children:[Ct.jsx(g6,{picture:e,analyserRef:n}),Ct.jsx(_k,{setPicture:t,analyserRef:n})]})})};my.createRoot(document.getElementById("root")).render(Ct.jsx(ma.StrictMode,{children:Ct.jsx(v6,{})}));
+`;function p6(n){return btoa(n.reduce((e,t)=>e+String.fromCharCode(t),""))}const m6=({picture:n,analyserRef:e})=>{const t=ae.useRef(null),i=cS(tx,"music.png");ae.useEffect(()=>{if(n){const o=`data:${n.format};base64,`+p6(n.data),a=new tx().load(o);t.current.material.uniforms.u_texture.value=a}else t.current.material.uniforms.u_texture.value=i},[n]),GG(()=>{if(e.current){const s=new Uint8Array(e.current.frequencyBinCount);e.current.getByteFrequencyData(s);const a=s.reduce((c,f,d)=>(c[Math.floor(d/s.length*5)].push(f),c),[[0],[0],[0],[0],[0]]).map(c=>c.reduce((f,d)=>f+d,0)/c.length);console.log(a),t.current.material.uniforms.u_freq0.value=a[0],t.current.material.uniforms.u_freq1.value=a[1],t.current.material.uniforms.u_freq2.value=a[2],t.current.material.uniforms.u_freq3.value=a[3],t.current.material.uniforms.u_freq4.value=a[4]}});const r=ae.useMemo(()=>({u_texture:{type:"t",value:i},u_freq0:{value:0},u_freq1:{value:0},u_freq2:{value:0},u_freq3:{value:0},u_freq4:{value:0}}),[i]);return Ct.jsxs("mesh",{ref:t,position:[0,0,0],scale:5,children:[Ct.jsx("planeGeometry",{args:[1,1]}),Ct.jsx("shaderMaterial",{fragmentShader:d6,vertexShader:h6,uniforms:r})]})},g6=({picture:n,analyserRef:e})=>Ct.jsx(Ct.Fragment,{children:Ct.jsx(f6,{style:{height:"80vh",aspectRatio:"1/1"},children:Ct.jsx(ae.Suspense,{fallback:null,children:Ct.jsx(m6,{picture:n,analyserRef:e})})})}),v6=()=>{const n=ae.useRef(null),[e,t]=ae.useState(null);return Ct.jsx(Ct.Fragment,{children:Ct.jsxs(a2,{direction:"column",justifyContent:"center",alignItems:"center",spacing:2,children:[Ct.jsx(g6,{picture:e,analyserRef:n}),Ct.jsx(_k,{setPicture:t,analyserRef:n})]})})};my.createRoot(document.getElementById("root")).render(Ct.jsx(ma.StrictMode,{children:Ct.jsx(v6,{})}));
