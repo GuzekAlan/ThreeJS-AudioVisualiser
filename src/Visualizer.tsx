@@ -1,6 +1,8 @@
+import { PerspectiveCamera } from "@react-three/drei";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
-import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader } from "three";
+import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader, Vector3 } from "three";
+import { vec3 } from "three/examples/jsm/nodes/Nodes.js";
 
 const fragmentShader = `
 in vec2 uvInterpolator;
@@ -139,7 +141,7 @@ const Img = ({ picture, analyserRef }: ImgProps) => {
 
   return (
     <>
-      <mesh ref={mesh} position={[0, 0, 1]} scale={2} rotation={[0.3, 5, 0]}>
+      <mesh ref={mesh} position={[0, 0, 0]} scale={2} >
         <boxGeometry args={[1, 1, 1]} />
         <shaderMaterial
           fragmentShader={fragmentShader}
@@ -147,7 +149,7 @@ const Img = ({ picture, analyserRef }: ImgProps) => {
           uniforms={uniforms}
         />
       </mesh>
-      <mesh position={[0, -1, 1]} scale={[5, 5, 0]} rotation={[-1., 0, 0]}>
+      <mesh position={[0, -1, 0]} scale={[8, 15, 0]} rotation={[-1.6, 0, 0]}>
         <planeGeometry args={[1, 1]} />
         <meshBasicMaterial color={0x70CAD1} />
       </mesh>
@@ -163,7 +165,8 @@ interface VisualizerProps {
 const Visualizer = ({ picture, analyserRef }: VisualizerProps) => {
   return (
     <>
-      <Canvas style={{ height: "80vh", aspectRatio: "1/1" }}>
+      <Canvas gl={{antialias: true}} style={{ height: "80vh", aspectRatio: "1/1" }}>
+        <PerspectiveCamera makeDefault position={[0, 5, 10]} rotation={[-0.5, 0., 0.]} zoom={2}/>
         <Suspense fallback={null}>
           <Img picture={picture} analyserRef={analyserRef} />
         </Suspense>
