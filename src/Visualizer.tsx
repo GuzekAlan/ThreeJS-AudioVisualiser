@@ -1,8 +1,7 @@
 import { PerspectiveCamera } from "@react-three/drei";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
-import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader, Vector3 } from "three";
-import { vec3 } from "three/examples/jsm/nodes/Nodes.js";
+import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader } from "three";
 
 const fragmentShader = `
 in vec2 uvInterpolator;
