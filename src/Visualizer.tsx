@@ -1,6 +1,6 @@
-import { Canvas, useFrame, useLoader} from "@react-three/fiber";
-import { MutableRefObject, Suspense, useEffect, useMemo, useRef} from "react";
-import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader} from "three";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
+import { Mesh, PlaneGeometry, ShaderMaterial, TextureLoader } from "three";
 
 const fragmentShader = `
 in vec2 uvInterpolator;
@@ -51,15 +51,21 @@ void main() {
   vec4 col = texture(u_texture, uv);
   gl_FragColor = col;
 }
-`
+`;
 const vertexShader = `
   out vec2 uvInterpolator;
 
+  uniform float u_freq0;
+  uniform float u_freq1;
+  uniform float u_freq2;
+  uniform float u_freq3;
+  uniform float u_freq4;
+
   void main() {
     uvInterpolator = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0) + vec4(0.0, sin(u_freq1/100.), 0.0, 0.0) * 0.005 * u_freq0;
   }
-`
+`;
 
 interface ImgProps {
   analyserRef?: React.MutableRefObject<AnalyserNode | null>;
@@ -72,7 +78,7 @@ function bytesToBase64(byteArray) {
   );
 }
 
-const Img = ({picture, analyserRef}: ImgProps) => {
+const Img = ({ picture, analyserRef }: ImgProps) => {
   const mesh: MutableRefObject<Mesh<PlaneGeometry, ShaderMaterial>> = useRef(
     null!
   );
@@ -91,19 +97,24 @@ const Img = ({picture, analyserRef}: ImgProps) => {
   }, [picture]);
 
   useFrame(() => {
-    if(analyserRef.current) {
+    if (analyserRef.current) {
       const array = new Uint8Array(analyserRef.current.frequencyBinCount);
       analyserRef.current.getByteFrequencyData(array);
 
       for (let i = 0; i < 5; i++) {
-        array
+        array;
       }
-      const arrays = array.reduce((acc, value, index) => {
-          acc[Math.floor(index / array.length * 5)].push(value);
-        return acc;
-      }, [[0], [0], [0], [0], [0]])
+      const arrays = array.reduce(
+        (acc, value, index) => {
+          acc[Math.floor((index / array.length) * 5)].push(value);
+          return acc;
+        },
+        [[0], [0], [0], [0], [0]]
+      );
 
-      const averages = arrays.map((array) => array.reduce((a, b) => a + b, 0) / array.length);
+      const averages = arrays.map(
+        (array) => array.reduce((a, b) => a + b, 0) / array.length
+      );
 
       console.log(averages);
       mesh.current.material.uniforms.u_freq0.value = averages[0];
@@ -116,39 +127,45 @@ const Img = ({picture, analyserRef}: ImgProps) => {
 
   const uniforms = useMemo(
     () => ({
-      u_texture: { type: "t", value: defaultTexture},
-      u_freq0: { value: 0},
-      u_freq1: { value: 0},
-      u_freq2: { value: 0},
-      u_freq3: { value: 0},
-      u_freq4: { value: 0},
-    }), [defaultTexture]);
+      u_texture: { type: "t", value: defaultTexture },
+      u_freq0: { value: 0 },
+      u_freq1: { value: 0 },
+      u_freq2: { value: 0 },
+      u_freq3: { value: 0 },
+      u_freq4: { value: 0 },
+    }),
+    [defaultTexture]
+  );
 
   return (
-    <mesh ref={mesh} position={[0, 0, 0]} scale={5}>
-      <planeGeometry args={[1, 1]} />
-      {/* <meshStandardMaterial map={texture} /> */}
-      <shaderMaterial
-        fragmentShader={fragmentShader}
-        vertexShader={vertexShader}
-        uniforms={uniforms}
-      />
-    </mesh>
-  )
-}
+    <>
+      <mesh ref={mesh} position={[0, 0, 1]} scale={2} rotation={[0.3, 5, 0]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <shaderMaterial
+          fragmentShader={fragmentShader}
+          vertexShader={vertexShader}
+          uniforms={uniforms}
+        />
+      </mesh>
+      <mesh position={[0, -1, 1]} scale={[5, 5, 0]} rotation={[-1., 0, 0]}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial color={0x70CAD1} />
+      </mesh>
+    </>
+  );
+};
 
 interface VisualizerProps {
   analyserRef?: React.MutableRefObject<AnalyserNode | null>;
   picture?: File | null;
 }
 
-const Visualizer = ({picture, analyserRef}: VisualizerProps ) => {
- 
+const Visualizer = ({ picture, analyserRef }: VisualizerProps) => {
   return (
     <>
       <Canvas style={{ height: "80vh", aspectRatio: "1/1" }}>
         <Suspense fallback={null}>
-          <Img picture={picture} analyserRef={analyserRef}/>
+          <Img picture={picture} analyserRef={analyserRef} />
         </Suspense>
       </Canvas>
     </>
